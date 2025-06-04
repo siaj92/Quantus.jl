@@ -1,0 +1,7 @@
+name = "QuantusJL"
+uuid = "60f7988a-8219-4a13-b11a-dc7de4eda32c"
+authors = ["Group D"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.11"
