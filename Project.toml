@@ -1,0 +1,7 @@
+name = "Quantus"
+uuid = "8d90210c-fca9-40c0-841d-bb2fe6438b55"
+authors = ["Karim Shawky <k.shawky@campus.tu-berlin.de>"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.11"
