@@ -1,6 +1,6 @@
 using QuantusJL
 using Test
 
-@testset "QuantusJL.jl" begin
-    # Write your tests here.
+@testset "RunTests" begin
+    include(absDif_test)
 end
