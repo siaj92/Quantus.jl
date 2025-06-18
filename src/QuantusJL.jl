@@ -10,8 +10,3 @@ module QuantusJL
 
     export abs_difference;
 end
-
-# using Main.QuantusJL
-# a = abs_difference([3.5, 3.0, 3.2], [2.5, 2.0, 2.2])
-
-# typeof(a)
