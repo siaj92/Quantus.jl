@@ -22,7 +22,7 @@ function evaluate_batch(metric::RandomLogit, model, x_batch, y_batch, a_batch)
     a_perturbed=explain_batch(model,x_batch, y_off)
 
     score= metric.similarity_func(
-        reshape(a_batch, batch_size, :)
+        reshape(a_batch, batch_size, :),
         reshape(a_perturbed, batch_size, :)
     )
     return score 
