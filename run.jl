@@ -20,8 +20,8 @@ train_x, _ = MLDatasets.MNIST.traindata()
 x = Float32.(train_x[:, :, 1]) ./ 255.0
 x = reshape(x, 28, 28, 1, 1)  # Add batch dimension
 
-# Evaluate
 metric = MaxSensitivity(nsamples=10, radius=0.02f0, normtype=2)
 sensitivity = evaluate(metric, model, gradient_explainer, x)
+
 
 println("MaxSensitivity for this MNIST image: ", sensitivity)
