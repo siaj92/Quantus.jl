@@ -112,20 +112,18 @@ module MaxSensitivityPC
         perturb_func=quantus.perturb_func.uniform_noise,
         similarity_func=quantus.similarity_func.difference
     )
-    
-    dict = pyimport("builtins").dict
-    explain_func_kwargs = dict([("method", "Gradient")])
 
+    dic_kwargs = PyDict("method" => "Gradient")
     @info typeof(device)
     @info typeof(quantus.norm_func.fro_norm)
     scores = metric(
         model=model,
         x_batch=x_batch,
         y_batch=y_batch,
-        a_batch = Py.Py(nothing),
         device=device,
         explain_func=quantus.explain,
-        explain_func_kwargs=explain_func_kwargs
+        explain_func_kwargs=dic_kwargs
     )
+    
 
 end
