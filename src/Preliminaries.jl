@@ -1,15 +1,19 @@
-module MaxSensitivityPC
-    using PythonCall
+
+using PythonCall
     const Py = PythonCall
 
     # Import necessary Python modules
     const torch = pyimport("torch")
     const plt = pyimport("matplotlib.pyplot")
     const np = pyimport("numpy")
-    const quantus = pyimport("quantus")
+    quantus = pyimport("quantus")
     const torchvision = pyimport("torchvision")
     const pybuiltin = pyimport("builtins")
     random = pyimport("random")
+
+
+    similarity_func=quantus.similarity_func.correlation_pearson
+    perturb_func=quantus.perturb_func.baseline_replacement_by_indices
 
     # === Adjust this path ===
     path_to_files = "src/assets/imagenet_samples"
@@ -61,8 +65,8 @@ module MaxSensitivityPC
     =#
     model = torchvision.models.resnet18(pretrained=true)
     model = model.to(device)
-    a_batch = quantus.explain(model, x_batch, y_batch, method="IntegratedGradients")
 
+    
     function to_numpy(x)
         if pyisinstance(x, torch.Tensor)
             return x.cpu().numpy()
@@ -75,24 +79,30 @@ module MaxSensitivityPC
     x_batch_np = to_numpy(x_batch)
     s_batch_np = to_numpy(s_batch)
     y_batch_np = to_numpy(y_batch)
-    a_batch_np = to_numpy(a_batch)
+    
 
     # === Reshape s_batch to (batch_size, 1, 224, 224) ===
     s_batch_np = s_batch_np.reshape(length(x_batch_np), 1, 224, 224)
 
+
+
+
+
         # index zufällig auswählen
-    index = random.randint(0, length(x_batch) - 1)
+    #=index = random.randint(0, length(x_batch) - 1)
 
     # Beispielhafte Erklärungen plotten
     fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(8, 5))
 
-    #= Bild normalisieren und anzeigen
+    #Bild normalisieren und anzeigen
     axes[0].imshow(normalize_image(x_batch[index]), vmin=0.0, vmax=1.0)
     axes[0].title.set_text("ImageNet class $(pyconvert(Int, y_batch[index].item()))")
+
     # Attribution anzeigen (reshape wie in Python)
     converted = pyconvert(Array, a_batch[index])
     reshaped = reshape(converted, 224, 224)
     exp = axes[1].imshow(reshaped, cmap="seismic")
+    
     # Farbskala hinzufügen
     fig.colorbar(exp, fraction=0.03, pad=0.05)
 
@@ -102,9 +112,10 @@ module MaxSensitivityPC
 
     plt.show() =#
 
+ 
 
     # Build the metric instance
-    metric = quantus.MaxSensitivity(
+    #=metric = quantus.MaxSensitivity(
         nr_samples=10,
         lower_bound=0.2,
         norm_numerator=quantus.norm_func.fro_norm,
@@ -115,15 +126,12 @@ module MaxSensitivityPC
 
     dic_kwargs = PyDict("method" => "Gradient")
     @info typeof(device)
-    @info typeof(quantus.norm_func.fro_norm)
+    @info typeof(quantus.explain)
     scores = metric(
         model=model,
         x_batch=x_batch,
         y_batch=y_batch,
+        a_batch=a_batch,
         device=device,
-        explain_func=quantus.explain,
-        explain_func_kwargs=dic_kwargs
-    )
-    
-
-end
+        explain_func=quantus.explain
+    )=#

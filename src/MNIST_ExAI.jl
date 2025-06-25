@@ -1,9 +1,10 @@
 using ExplainableAI
 using Flux, MLDatasets
 using Flux: flatten
+using PythonCall
 
 # Define model
-model = Chain(
+fluxModel = Chain(
     Conv((3, 3), 1=>8, relu),
     MaxPool((2, 2)),
     Conv((3, 3), 8=>16, relu),
@@ -12,6 +13,7 @@ model = Chain(
     Dense(400, 10),
     softmax
 )
+weights=Flux.params(fluxModel)
 
 # Load data
 # Entire batch for model use
@@ -26,7 +28,7 @@ y_batch = train_y[1:32] .- 1  # Convert from 1-based to 0-based if needed
 x = x_batch[:, :, :, 1]  # This is a single 28x28x1 image
 x = reshape(x, 28, 28, 1, 1)
 # Create analyzers
-analyzer1 = SmoothGrad(model)
-analyzer2 = Gradient(model)
-analyzer3 = IntegratedGradients(model)
-analyzer4 = InputTimesGradient(model)
+analyzer1 = SmoothGrad(fluxModel)
+analyzer2 = Gradient(fluxModel)
+analyzer3 = IntegratedGradients(fluxModel)
+analyzer4 = InputTimesGradient(fluxModel)

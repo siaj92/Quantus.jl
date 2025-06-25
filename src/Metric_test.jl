@@ -35,9 +35,11 @@ end
 a_batch = cat(a_batch...; dims=4)
 
 # Instantiate metric
-metric = RandomLogit(n_classes=10, seed=45, similarity_func=cosine_batch)
+#metric = RandomLogit(n_classes=10, seed=45, similarity_func=cosine_batch)
+metric= MaxSensitivity(; nsamples=10, radius=0.05f0, normtype=2)
 
 # Evaluate
 scores = evaluate_batch(metric, model, x_batch, y_batch, a_batch; explain_batch=explain_batch)
 
-println("RandomLogit Scores: ", scores)
+#println("RandomLogit Scores: ", scores)
+println("MaxSensitivity for this MNIST image: ", scores)
