@@ -1,7 +1,7 @@
 include("MNIST_ExAI.jl")
 include("Preliminaries.jl")
 
-#1: FaithfulnessCorrelation
+#1: FaithfulnessCorrelation setup
 metric=quantus.FaithfulnessCorrelation(
     nr_runs=100,  
     subset_size=224,  
@@ -11,10 +11,20 @@ metric=quantus.FaithfulnessCorrelation(
     abs=false,  
     return_aggregate=false,
 )
-@info(fluxModel)
-@info(model)
-a_batch = quantus.explain(fluxModel, x_batch, y_batch, method="Gradient")
 
+# FaithfulnessCorrelation with Python Model: 
+a_batch=quantus.explain(model,x_batch, y_batch, method="Gradient")
+scores=metric(
+    model=model, 
+    x_batch=x_batch_np, 
+    y_batch=y_batch_np,
+    a_batch= a_batch,
+    device=device
+)
+@info scores
+
+#= Faild Try to use FaithfulnessCorrelation with 
+a_batch = quantus.explain(fluxModel, x_batch, y_batch, method="Gradient")
 scores=metric(
     model=fluxModel, 
     x_batch=x_batch_np, 
@@ -22,7 +32,7 @@ scores=metric(
     a_batch= a_batch,
     device=device
 )
-@info scores
+@info scores =#
 
 
 #2: 
