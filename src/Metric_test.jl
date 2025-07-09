@@ -1,8 +1,11 @@
 include("MNIST_ExAI.jl")
 include("RandomLogitJL.jl")
+include("MaxSensitivityJL.jl")
 
 using .RandomLogitJL
+using .MaxSensitivityJL
 using Distances
+using LinearAlgebra
 
 # Define cosine similarity as 1 - cosine distance between flattened rows
 function cosine_batch(a::AbstractMatrix, b::AbstractMatrix)
@@ -17,7 +20,15 @@ function explain_batch(model, x_batch, y_target_batch)
 
     for i in 1:batch_size
         x_sample = reshape(x_batch[:, :, :, i], size(x_batch, 1), size(x_batch, 2), size(x_batch, 3), 1)
-        out[i] = analyze(x_sample, analyzer1; target=y_target_batch[i])
+
+        # Get the Explanation object
+        explanation = analyze(x_sample, analyzer1; target=y_target_batch[i])
+
+        # Extract the explanation values
+        # explanation.val is expected to be Array{Float32, 4} => reshape to 3D
+        explanation_data = dropdims(explanation.val, dims=4)  # drops singleton dimension to get Array{Float32, 3}
+
+        out[i] = explanation_data
     end
 
     return cat(out...; dims=4)
@@ -29,17 +40,23 @@ a_batch = Vector{Array{Float32, 3}}(undef, batch_size)
 
 for i in 1:batch_size
     x_sample = reshape(x_batch[:, :, :, i], size(x_batch, 1), size(x_batch, 2), size(x_batch, 3), 1)
-    a_batch[i] = analyze(x_sample, analyzer1; target=y_batch[i])
+
+    explanation = analyze(x_sample, analyzer1; target=y_batch[i])
+
+    # Extract and reshape explanation values
+    explanation_data = dropdims(explanation.val, dims=4)
+
+    a_batch[i] = explanation_data
 end
 
 a_batch = cat(a_batch...; dims=4)
 
 # Instantiate metric
-#metric = RandomLogit(n_classes=10, seed=45, similarity_func=cosine_batch)
-metric= MaxSensitivity(; nsamples=10, radius=0.05f0, normtype=2)
+metric = RandomLogitJL.RandomLogit(10, 45, cosine_batch)
+#metric= MaxSensitivity(; nsamples=10, radius=0.05f0, normtype=2)
 
 # Evaluate
-scores = evaluate_batch(metric, model, x_batch, y_batch, a_batch; explain_batch=explain_batch)
+scores = RandomLogitJL.evaluate_batch(metric, fluxModel, x_batch, y_batch, a_batch; explain_batch=explain_batch)
 
 #println("RandomLogit Scores: ", scores)
-println("MaxSensitivity for this MNIST image: ", scores)
+println("RandomLogit Test for this MNIST image: ", scores)

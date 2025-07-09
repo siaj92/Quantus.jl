@@ -5,9 +5,17 @@ version = "1.0.0-DEV"
 
 [deps]
 CondaPkg = "992eb4ea-22a4-4c89-a5bb-47a3300528ab"
+Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
+MLDatasets = "eb30cadb-4394-5ae3-aed4-317e484a6458"
 PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 CondaPkg = "0.2.29"
+Distances = "0.10.12"
+Flux = "0.16.4"
+MLDatasets = "0.7.18"
 PythonCall = "0.9.25"
+Zygote = "0.7.10"
 julia = "1.11"
