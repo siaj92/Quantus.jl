@@ -1,20 +1,38 @@
 include("MNIST_ExAI.jl")
 include("RandomLogitJL.jl")
 include("MaxSensitivityJL.jl")
+include("FaithfulnessCorrelationJL.jl")
 
 using .RandomLogitJL
 using .MaxSensitivityJL
+using .FaithfulnessCorrelationJL
 using Distances
 using LinearAlgebra
 
-# Define cosine similarity as 1 - cosine distance between flattened rows
+# Cosine_batch an example of a similarity_func
 function cosine_batch(a::AbstractMatrix, b::AbstractMatrix)
     dists = pairwise(CosineDist(), eachrow(a), eachrow(b))
     return 1 .- diag(dists)
 end
 
+# perturb_noise an example of a perturb_func
+function perturb_noise(arr::AbstractArray, indices::Vector{Vector{Int}})
+    arr_copy = copy(arr)  # Make a copy so original isn't changed
+    batch_size = size(arr, 1)
+    feature_dim = prod(size(arr)[2:end])  # Flattened feature space
+    reshaped_arr = reshape(arr_copy, batch_size, feature_dim)
+
+    for i in 1:batch_size
+        n_masked = length(indices[i])
+        reshaped_arr[i, indices[i]] .= randn(Float32, n_masked)  # Gaussian noise
+    end
+
+    return reshape(reshaped_arr, size(arr))
+end
+
+
 # Batch-level wrapper for ExplainableAI — required by `evaluate_batch`
-function explain_batch(model, x_batch, y_target_batch)
+function explain_batch(model, x_batch, y_target_batch, analyzer)
     batch_size = size(x_batch, 4)
     out = Vector{Array{Float32, 3}}(undef, batch_size)
 
@@ -53,10 +71,11 @@ a_batch = cat(a_batch...; dims=4)
 
 # Instantiate metric
 metric = RandomLogitJL.RandomLogit(10, 45, cosine_batch)
-#metric= MaxSensitivity(; nsamples=10, radius=0.05f0, normtype=2)
+metric1= FaithfulnessCorrelationJL.FaithfulnessCorrelation(100, 224, cosine_batch, perturb_noise)
 
 # Evaluate
 scores = RandomLogitJL.evaluate_batch(metric, fluxModel, x_batch, y_batch, a_batch; explain_batch=explain_batch)
-
+scores1 = FaithfulnessCorrelationJL.evaluate_batch(metric1, fluxModel, x_batch, y_batch, a_batch)
 #println("RandomLogit Scores: ", scores)
 println("RandomLogit Test for this MNIST image: ", scores)
+println("FaithfulnessCorrelation for this MNIST image: ", scores1)
