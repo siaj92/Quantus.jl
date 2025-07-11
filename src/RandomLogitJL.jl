@@ -11,7 +11,8 @@ end
 
 function evaluate_batch(metric::RandomLogit, model, x_batch, y_batch, a_batch; explain_batch)
     rand_seed=Xoshiro(metric.seed) # generating a random number on the base of a seed, making it pseudorandom if the user desires to reproduce tests
-    batch_size = size(x_batch, 4)
+
+    batch_size = size(x_batch, 4) # different method of calculation compared to other metrics, therefore batch_size needs to be assigned to the last entry
     
     y_classes = collect(0:metric.n_classes-1)
     y_off = Vector{Int}(undef, batch_size)

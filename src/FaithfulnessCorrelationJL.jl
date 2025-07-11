@@ -14,11 +14,11 @@ end
 
 
 function evaluate_batch(metric::FaithfulnessCorrelation, model, x_batch, y_batch, a_batch)
-    # --- Initial setup ---
+   
     batch_size = size(x_batch, 1)
     n_features = prod(size(x_batch)[2:end])  # flatten everything except batch dimension
 
-    # --- Filter invalid labels ---
+    #  filtering Invalid samples
     logits_ref = model(x_batch)
     num_classes = size(logits_ref, 1)
     valid_idx = [i for i in 1:batch_size if 0 <= y_batch[i] < num_classes]
@@ -32,10 +32,10 @@ function evaluate_batch(metric::FaithfulnessCorrelation, model, x_batch, y_batch
         logits_ref = model(x_batch)
     end
 
-    # --- Flatten attributions ---
+   
     a_flat = reshape(a_batch, batch_size, n_features)
 
-    # --- Helper: extract target logits (0-based labels) ---
+    
     function extract_logits(logits)
         preds = zeros(Float32, batch_size)
         for i in 1:batch_size
@@ -46,16 +46,16 @@ function evaluate_batch(metric::FaithfulnessCorrelation, model, x_batch, y_batch
         return preds
     end
 
-    # --- Original predictions ---
+    #Original predictions
     y_orig = extract_logits(logits_ref)
 
-    # --- Prepare accumulators ---
+    # Prepare sums
     deltas = zeros(Float32, batch_size, metric.nr_runs)
     sums   = zeros(Float32, batch_size, metric.nr_runs)
 
-    # --- Main loop: perturb and predict ---
+    #  predicting and perturbing over all samples
     for run in 1:metric.nr_runs
-        # sample random feature subsets
+        
         indices = [randperm(n_features)[1:metric.subset_size] for _ in 1:batch_size]
 
         # perturb inputs
@@ -72,7 +72,6 @@ function evaluate_batch(metric::FaithfulnessCorrelation, model, x_batch, y_batch
         end
     end
 
-    # --- Compute and return similarity score ---
     return metric.similarity_func(sums, deltas)
 end
 
