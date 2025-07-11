@@ -5,7 +5,6 @@ include("metrics/SparsenessJL.jl")
 
 using .RandomLogitJL
 using .MaxSensitivityJL
-#using .FaithfulnessCorrelationJL
 using Distances
 using LinearAlgebra
 
@@ -13,6 +12,10 @@ using LinearAlgebra
 function cosine_batch(a::AbstractMatrix, b::AbstractMatrix)
     dists = pairwise(CosineDist(), eachrow(a), eachrow(b))
     return 1 .- diag(dists)
+end
+
+function cosine_similarity(a, b)
+    return 1 - cosine_dist(vec(a), vec(b))
 end
 
 # perturb_noise an example of a perturb_func
@@ -71,15 +74,12 @@ a_batch = cat(a_batch...; dims=4)
 
 # Instantiate metric
 metric = RandomLogitJL.RandomLogit(10, 45, cosine_batch)
-#metric1= FaithfulnessCorrelationJL.FaithfulnessCorrelation(100, 224, cosine_batch, perturb_noise)
 metric2 = SparsenessJL.Sparseness()
-#metric3=MaxSensitivityJL.MaxSensitivity(10,0.05f0, perturb_noise, changed_prediction_indices, cosine_batch)
-
+metric3 = MaxSensitivityJL.MaxSensitivity(10, 0.05f0, perturb_noise,(m, x, y) -> explain_batch(m, x, y, analyzer1),cosine_similarity,maximum)
 # Evaluate
-scores = RandomLogitJL.evaluate_batch(metric, fluxModel, x_batch, y_batch, a_batch; explain_batch=explain_batch)
-#scores1 = FaithfulnessCorrelationJL.evaluate_batch(metric1, fluxModel, x_batch, y_batch, a_batch)
+scores = RandomLogitJL.evaluate_batch(metric, fluxModel, x_batch, y_batch, a_batch; explain_batch=(m, x, y) -> explain_batch(m, x, y, analyzer1))
 scores2 = SparsenessJL.evaluate_batch(metric2, a_batch)
-#println("RandomLogit Scores: ", scores)
+scores3 = MaxSensitivityJL.evaluate_batch(metric3, fluxModel, x_batch, y_batch, a_batch)
 println("RandomLogit Test for this MNIST image: ", scores)
-#println("FaithfulnessCorrelation for this MNIST image: ", scores1)
 println("Sparseness for this MNIST image: ", scores2)
+println("MaxSensitivity for this MNIST image: ", scores3)
