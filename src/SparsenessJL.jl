@@ -1,8 +1,6 @@
 module SparsenessJL
 
-export Sparseness
-
-
+export Sparseness, evaluate_batch
 
 struct Sparseness
 # empty, no need for particular inputs/intialization
@@ -30,8 +28,5 @@ function evaluate_batch(metric::Sparseness, a_batch)
 
     return scores
 end
-
-
-
 
 end

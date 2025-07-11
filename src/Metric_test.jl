@@ -2,6 +2,7 @@ include("MNIST_ExAI.jl")
 include("RandomLogitJL.jl")
 include("MaxSensitivityJL.jl")
 include("FaithfulnessCorrelationJL.jl")
+include("SparsenessJL.jl")
 
 using .RandomLogitJL
 using .MaxSensitivityJL
@@ -72,10 +73,13 @@ a_batch = cat(a_batch...; dims=4)
 # Instantiate metric
 metric = RandomLogitJL.RandomLogit(10, 45, cosine_batch)
 metric1= FaithfulnessCorrelationJL.FaithfulnessCorrelation(100, 224, cosine_batch, perturb_noise)
+metric2 = SparsenessJL.Sparseness()
 
 # Evaluate
 scores = RandomLogitJL.evaluate_batch(metric, fluxModel, x_batch, y_batch, a_batch; explain_batch=explain_batch)
 scores1 = FaithfulnessCorrelationJL.evaluate_batch(metric1, fluxModel, x_batch, y_batch, a_batch)
+scores2 = SparsenessJL.evaluate_batch(metric2, a_batch)
 #println("RandomLogit Scores: ", scores)
 println("RandomLogit Test for this MNIST image: ", scores)
 println("FaithfulnessCorrelation for this MNIST image: ", scores1)
+println("Sparseness for this MNIST image: ", scores2)
